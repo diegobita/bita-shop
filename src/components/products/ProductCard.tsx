@@ -27,7 +27,7 @@ export const ProductCard = ({product}: Props) =>{
             onMouseLeave={() => setIsHovered(false)}
         >
             <Card>
-                <NextLink href={'/products/slug'} passHref prefetch={false}>
+                <NextLink href={`/products/${product.slug}`} passHref prefetch={false}>
                     <Link component={'span'}>
                         <CardActionArea>
                             <CardMedia
