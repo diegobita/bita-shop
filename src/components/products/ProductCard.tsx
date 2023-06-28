@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import NextLink from 'next/link';
 
-import { Box, Card, CardActionArea, CardMedia, Grid, Link, Typography } from "@mui/material"
+import { Box, Card, CardActionArea, CardMedia, Chip, Grid, Link, Typography } from "@mui/material"
 
 import { IProduct } from "@/interfaces"
 
@@ -18,6 +18,27 @@ export const ProductCard = ({product}: Props) =>{
         return isHovered ?  `products/${product.images[1]}` : `products/${product.images[0]}`
     }, [isHovered, product.images])
 
+    const inStockChip = (stock: number) =>{
+        if(stock === 0){
+            return (<Chip
+                color="error"
+                label="Agotado"
+                size="small"
+                sx={{position: 'absolute', zIndex: 99, top: '10px', left: '10px'}}
+            />)
+        }else{
+            if(stock < 15){
+                return (
+                    <Chip
+                        color="secondary"
+                        label="Ultimas disponibles"
+                        size="small"
+                        sx={{position: 'absolute', zIndex: 99, top: '10px', left: '10px'}}
+                    />
+                )
+            }
+        } 
+    }    
     return(
         <Grid 
             item 
@@ -30,6 +51,9 @@ export const ProductCard = ({product}: Props) =>{
                 <NextLink href={`/products/${product.slug}`} passHref prefetch={false}>
                     <Link component={'span'}>
                         <CardActionArea>
+                            {
+                                inStockChip(product.inStock)
+                            }
                             <CardMedia
                                 component={'img'}
                                 className="fadeIn"

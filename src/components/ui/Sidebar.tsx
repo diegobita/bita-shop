@@ -35,6 +35,7 @@ export const SideBar = () => {
 
                     <ListItem>
                         <Input
+                            autoFocus
                             value={search}
                             onChange={(event)=> setSearch(event.target.value)}
                             onKeyDown={(event) => event.key === 'Enter' ? onSearch() : null}

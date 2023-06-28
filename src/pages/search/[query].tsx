@@ -20,11 +20,11 @@ const SearchPage: NextPage<Props> = (props) => {
             <Typography variant='h1' component='h1'>Buscar producto</Typography>
             {
                 foundProducts
-                    ? <Typography variant='h2' sx={{mb: 1}}>Busqueda: {query}</Typography>
+                    ? <Typography variant='h2' sx={{mb: 1}} textTransform={'capitalize'}>Busqueda: {query}</Typography>
                     : (
                         <Box display={'flex'}>
                             <Typography variant='h2' sx={{mb: 1}}>No se encontraron productos</Typography>
-                            <Typography variant='h2' sx={{ml: 1}} color={'secondary'}>{query}</Typography>
+                            <Typography variant='h2' sx={{ml: 1}} textTransform={'capitalize'} color={'secondary'}>{query}</Typography>
                         </Box>
                     )
 
@@ -37,7 +37,7 @@ const SearchPage: NextPage<Props> = (props) => {
 }
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
     const {params} = ctx;
-    const {query = ''} = params as {params: string};
+    const {query = ''} = params as {query: string};
 
     if(query.length === 0){
         return {
@@ -50,6 +50,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     let products = await dbProducts.getProductsByTerm(query);
     const foundProducts = products.length > 0;
     if(!foundProducts){
+        /*Cuando no hay productos en la busqueda, se muestran todos los productos, se podria mejorar
+        buscando los ultimos productos buscados y almacenados en cookies
+        hay que guardare en cookies todas las busquedas realizadas */
         products = await dbProducts.getAllProducts();
     }
     return {
