@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import {useContext, useState} from "react";
 import { useRouter } from "next/router";
 import { Box, Divider, Drawer, IconButton, Input, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from "@mui/material"
 import { AccountCircleOutlined, AdminPanelSettings, CategoryOutlined, ConfirmationNumberOutlined, EscalatorWarningOutlined, FemaleOutlined, LoginOutlined, MaleOutlined, SearchOutlined, VpnKeyOutlined } from "@mui/icons-material"
@@ -9,6 +9,15 @@ export const SideBar = () => {
 
     const {sideMenuOpen, toggleSideMenu} = useContext(UIContext);
     const router = useRouter();
+
+    const [search, setSearch] = useState('');
+
+    const onSearch=()=>{
+        if(search.trim().length === 0)
+            return;
+        navigateTo(`/search/${search}`)
+    }
+
     const navigateTo = (url: string) =>{
         toggleSideMenu();
         router.push(url)
@@ -26,12 +35,15 @@ export const SideBar = () => {
 
                     <ListItem>
                         <Input
+                            value={search}
+                            onChange={(event)=> setSearch(event.target.value)}
+                            onKeyDown={(event) => event.key === 'Enter' ? onSearch() : null}
                             type='text'
                             placeholder="Buscar..."
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton
-                                    aria-label="toggle password visibility"
+                                        onClick={onSearch}
                                     >
                                     <SearchOutlined />
                                     </IconButton>
@@ -69,7 +81,7 @@ export const SideBar = () => {
                         <ListItemText primary={'Mujeres'} />
                     </ListItemButton>
 
-                    <ListItemButton sx={{ display: { xs: '', sm: 'none' } }}onClick={()=>navigateTo("/category/kid")}>
+                    <ListItemButton sx={{ display: { xs: '', sm: 'none' } }} onClick={()=>navigateTo("/category/kid")}>
                         <ListItemIcon>
                             <EscalatorWarningOutlined/>
                         </ListItemIcon>
