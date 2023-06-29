@@ -1,11 +1,20 @@
 import { ICartProduct } from "@/interfaces";
 import { CartState } from ".";
 
+interface IOrderSumary {
+    numberOfItmes: number;
+    subtotal: number;
+    tax: number;
+    total: number;
+}
 
 
 type CartActionType = 
 |{type: 'LoadCart_from_Cookies_Or_Storage', payload: ICartProduct[]}
-|{type: 'Add_product_to_cart', payload: ICartProduct}
+|{type: 'Update_products_in_cart', payload: ICartProduct[]}
+|{type: 'Change_quantity_product_in_cart', payload: ICartProduct}
+|{type: 'Remove_product_cart', payload: ICartProduct}
+|{type: 'Update_order_summary', payload: IOrderSumary}
 
 export const cartReducer = (state: CartState, action: CartActionType): CartState => {
 
@@ -13,12 +22,35 @@ export const cartReducer = (state: CartState, action: CartActionType): CartState
         case 'LoadCart_from_Cookies_Or_Storage':
             return {
                 ...state,
+                cart: [...action.payload]
                 
             }
-        case 'Add_product_to_cart':
+        case 'Update_products_in_cart':
             return {
                 ...state,
-                
+                cart: [...action.payload],
+            }
+        case 'Change_quantity_product_in_cart':
+            return {
+                ...state,
+                cart: state.cart.map(prod =>{
+                        if(prod._id !== action.payload._id) return prod;
+                        if(prod.size !== action.payload.size) return prod;
+        
+                        return action.payload;
+                    })
+            }
+        case 'Remove_product_cart':
+            return {
+                ...state,
+                cart: state.cart.filter(prod =>{
+                        return !(prod._id === action.payload._id && prod.size === action.payload.size) 
+                    })
+            }
+        case 'Update_order_summary':
+            return {
+                ...state,
+                ...action.payload
             }
         default:
             return state;

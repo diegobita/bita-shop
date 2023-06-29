@@ -1,11 +1,13 @@
-import { GetServerSideProps, GetStaticPaths, GetStaticProps, NextPage } from "next";
+import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import { ShopLayout } from "@/components/layouts";
 import { ItemCounter, SlideShowImages } from "@/components/ui";
 import { Box, Button, Chip, Grid, Typography } from "@mui/material";
 import { SizeSelector } from "@/components/products";
 import { ICartProduct, IProduct, ISize } from "@/interfaces";
 import { dbProducts } from "@/database";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { useRouter } from "next/router";
+import { CartContext } from "@/context";
 
 
 interface Props {
@@ -16,6 +18,8 @@ interface Props {
 const ProductPage: NextPage<Props> = (props) => {
 
     const {product} = props;
+    const router = useRouter();
+    const {addProductToCart} = useContext(CartContext);
 
     const [tempCartProduct, setTempCartProduct] = useState<ICartProduct>({
       _id: product._id,
@@ -40,6 +44,12 @@ const ProductPage: NextPage<Props> = (props) => {
         ...currentProduct,
         quantity: quantity,
       }))
+    }
+
+    const addProductCart = () => {
+      if(!tempCartProduct.size)
+        return;
+      addProductToCart({ ...tempCartProduct });
     }
 
     return (
@@ -69,7 +79,7 @@ const ProductPage: NextPage<Props> = (props) => {
                 {
                   (product.inStock === 0)
                     ?(<Chip label="No hay más disponibles" color="error" variant="outlined"></Chip>)
-                    :(<Button color='secondary' className="circular-btn">
+                    :(<Button color='secondary' className="circular-btn" onClick={addProductCart}>
                         {
                           tempCartProduct.size
                           ? "Agregar al carrito"

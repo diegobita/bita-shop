@@ -3,14 +3,14 @@ import NextLink from 'next/link';
 import { AppBar, Badge, Box, Button, IconButton, Input, InputAdornment, Link, Toolbar, Typography } from "@mui/material"
 import { ClearOutlined, SearchOutlined, ShoppingCartOutlined } from '@mui/icons-material';
 import { useContext, useState } from 'react';
-import { UIContext } from '@/context';
+import { CartContext, UIContext } from '@/context';
 
 
 export const NavBar = () => {
 
     const router = useRouter();
-    console.log(router);
     const {toggleSideMenu} = useContext(UIContext);
+    const {numberOfItmes} = useContext(CartContext);
 
     const [search, setSearch] = useState('');
     const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -100,7 +100,7 @@ export const NavBar = () => {
                 <NextLink href={'/cart'} passHref>
                     <Link component={'span'}>
                         <IconButton>
-                            <Badge badgeContent={2} color='secondary'>
+                            <Badge badgeContent={numberOfItmes} color='secondary'>
                                 <ShoppingCartOutlined/>
                             </Badge>
                         </IconButton>
