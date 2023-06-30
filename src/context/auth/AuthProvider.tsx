@@ -1,10 +1,8 @@
 import { PropsWithChildren, useReducer, useEffect, useState } from 'react';
 import { AuthContext, authReducer } from './';
-import Cookie from 'js-cookie';
 import { IUser } from '@/interfaces';
 import { shopApi } from '@/api';
 import Cookies from 'js-cookie';
-import { resolve } from 'path';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 
@@ -78,6 +76,16 @@ export const AuthProvider = (props: PropsWithChildren) => {
     const logout = () =>{
         Cookies.remove('token');
         Cookies.remove('cart')
+        Cookies.remove('lastName');
+        Cookies.remove('firstName');
+        Cookies.remove('email');
+        Cookies.remove('address');
+        Cookies.remove('address2' || '');
+        Cookies.remove('zip');
+        Cookies.remove('departament');
+        Cookies.remove('city');
+        Cookies.remove('country');
+        Cookies.remove('phone');
         dispatch({type:'Logout'});
         router.reload();
     }
