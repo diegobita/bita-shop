@@ -6,7 +6,9 @@ import {useForm} from "react-hook-form";
 import {validations} from '@/utils'
 import {shopApi} from "@/api";
 import {ErrorOutline} from "@mui/icons-material";
-import {useState} from "react";
+import {useContext, useState} from "react";
+import { AuthContext } from "@/context";
+import { useRouter } from "next/router";
 
 type FormData = {
     email: string,
@@ -15,18 +17,24 @@ type FormData = {
 
 const LoginPage: NextPage = () => {
 
+    const {loginUser} = useContext(AuthContext);
+    const router = useRouter();
     const {register, handleSubmit, formState: {errors}} = useForm<FormData>();
     const [showError, setShowError] = useState(false);
+
+
     const onLoginUser = async (formData: FormData) => {
         const {email, password} = formData;
         setShowError(false);
-        try{
-            const {data} = await shopApi.post("/user/login", {email, password})
-            const {token, user} = data;
-        }catch (e) {
-            console.log("Error en las credenciales")
+
+        const validLogin = await loginUser(email, password);
+
+        if(!validLogin){
             setShowError(true);
+            return;
         }
+        const destination = router.query.p?.toString() || '/'//Esto es para volver a la misma pagina que me encontraba antes del login
+        router.replace(destination);
     }
 
     return (
@@ -79,7 +87,7 @@ const LoginPage: NextPage = () => {
                             </Button>
                         </Grid>
                         <Grid item xs={12} display={'flex'} justifyContent={'end'}>
-                            <NextLink href={`/auth/register`} passHref>
+                            <NextLink href={router.query.p ? `/auth/register?p=${router.query.p}` : `/auth/register`} passHref>
                                 <Link underline="always" component={'span'}>
                                     ¿No tiene cuenta?
                                 </Link>

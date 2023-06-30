@@ -2,13 +2,22 @@ import { NextPage } from "next";
 import { ShopLayout } from "@/components/layouts";
 import { Box, Button, Card, CardContent, Divider, Grid, Typography } from "@mui/material";
 import { CartList, OrderSummary } from "@/components/cart";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { CartContext } from "@/context";
+import { useRouter } from "next/router";
 
 const CartPage: NextPage = () => {
     
-    const {numberOfItmes} = useContext(CartContext);
+    const {numberOfItmes, isLoaded} = useContext(CartContext);
+    const router = useRouter();
+    useEffect(() => {
+        if(isLoaded && numberOfItmes === 0)
+            router.replace("/cart/empty");
+    },[isLoaded, numberOfItmes, router])
     
+    if(!isLoaded || numberOfItmes ===0){
+        return(<></>)
+    }
     return (
       <ShopLayout title={"Carrito - " + numberOfItmes + (numberOfItmes > 1 ? " items" : " items")} pageDescription={"Carrito de compras"}>
         <Typography variant="h1" component='h1'>Carrito</Typography>
@@ -23,7 +32,12 @@ const CartPage: NextPage = () => {
                         <Divider sx={{my:1}}/>
                         <OrderSummary/>
                         <Box sx={{mt: 3}}>
-                            <Button color="secondary" className="circular-btn" fullWidth>
+                            <Button 
+                                color="secondary" 
+                                className="circular-btn" 
+                                fullWidth
+                                href="/checkout/address"
+                            >
                                 Checkout
                             </Button>
                         </Box>

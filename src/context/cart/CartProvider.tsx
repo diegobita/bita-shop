@@ -4,18 +4,50 @@ import { ICartProduct } from '@/interfaces';
 import Cookie from 'js-cookie';
 
 export interface CartState {
+    isLoaded: boolean;
     cart: ICartProduct[];
     numberOfItmes: number;
     subtotal: number;
     tax: number;
     total: number;
+    shippingAddress?: ShippingAddress,
+    billingAddress?: BillingAddress,
 }
+
+export interface ShippingAddress {
+    firstName: string;
+    lastName: string;
+    email:string;
+    address: string;
+    address2?: string;
+    zip: string;
+    departament: string;
+    city: string,
+    country: string;
+    phone: string;
+}
+export interface BillingAddress {
+    firstName: string;
+    lastName: string;
+    email:string;
+    address: string;
+    address2?: string;
+    zip: string;
+    departament: string;
+    city: string,
+    country: string;
+    phone: string;
+}
+
 const CART_INITIAL_STATE: CartState = {
-   cart: [],
-   numberOfItmes: 0,
+    isLoaded: false,
+    cart: [],
+    numberOfItmes: 0,
     subtotal: 0,
     tax: 0,
     total: 0,
+    shippingAddress: undefined,
+    billingAddress: undefined,
 }
 
 export const CartProvider = (props: PropsWithChildren) => {
@@ -43,6 +75,24 @@ export const CartProvider = (props: PropsWithChildren) => {
         if(isMounted)
             Cookie.set('cart', JSON.stringify(state.cart))
     },[state.cart, isMounted])
+
+    useEffect(() => {
+        if(Cookie.get('firstName')){
+            const shippingAddress = {
+                firstName: Cookie.get('firstName') || '',
+                lastName: Cookie.get('lastName') || '',
+                email: Cookie.get('email') || '',
+                address: Cookie.get('address') || '',
+                address2: Cookie.get('address2') || '',
+                zip: Cookie.get('zip') || '',
+                departament: Cookie.get('departament') || '',
+                city: Cookie.get('city') || '',
+                country: Cookie.get('country') || '',
+                phone: Cookie.get('phone') || '', 
+            }
+            dispatch({type:'Load_Address_shipping_from_cookies', payload: shippingAddress});
+        }
+    }, [])
 
     useEffect(() => {
         const numberOfItmes = state.cart.reduce((prev, currentProduct) => currentProduct.quantity + prev,0);
@@ -86,6 +136,20 @@ export const CartProvider = (props: PropsWithChildren) => {
     const removeProductCart = (product: ICartProduct) =>{
         dispatch({type: 'Remove_product_cart', payload: product})
     }
+
+    const updateAddress = (address: ShippingAddress) =>{
+        Cookie.set('lastName', address.lastName);
+        Cookie.set('firstName', address.firstName);
+        Cookie.set('email', address.email);
+        Cookie.set('address', address.address);
+        Cookie.set('address2', address.address2 || '');
+        Cookie.set('zip', address.zip);
+        Cookie.set('departament', address.departament);
+        Cookie.set('city', address.city);
+        Cookie.set('country', address.country);
+        Cookie.set('phone', address.phone);
+        dispatch({type:'Update_Address_shipping', payload: address})
+    }
     
     
     return(
@@ -96,6 +160,7 @@ export const CartProvider = (props: PropsWithChildren) => {
             addProductToCart,
             changeQuantityProductInCart,
             removeProductCart,
+            updateAddress,
         }}>
             {children}
         </CartContext.Provider>
