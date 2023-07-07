@@ -1,15 +1,28 @@
+import { useContext, useEffect } from "react";
 import { NextPage } from "next";
+import { useRouter } from "next/router";
 import NextLink from "next/link"
+
 import { ShopLayout } from "@/components/layouts";
 import { Box, Button, Card, CardContent, Divider, Grid, Link, Typography } from "@mui/material";
 import { CartList, OrderSummary } from "@/components/cart";
-import { useContext } from "react";
 import { CartContext } from "@/context";
 import { countries } from "@/utils";
+import Cookies from "js-cookie";
 
 const SummaryPage: NextPage = () => {
 
-    const {shippingAddress, numberOfItmes} = useContext(CartContext);
+    const {shippingAddress, numberOfItmes, createOrder} = useContext(CartContext);
+    const router = useRouter();
+    useEffect(() => {
+        if(!Cookies.get('firstName')){
+            router.push('/checkout/address')
+        }
+    }, [router])
+
+    const onCreateOrder = () =>{
+        createOrder();
+    }
 
     if(!shippingAddress){
         return(<></>)
@@ -56,7 +69,7 @@ const SummaryPage: NextPage = () => {
                         </Box>
                         <OrderSummary/>
                         <Box sx={{mt: 3}}>
-                            <Button color="secondary" className="circular-btn" fullWidth>
+                            <Button color="secondary" className="circular-btn" fullWidth onClick={onCreateOrder}>
                                 Confirmar orden
                             </Button>
                         </Box>

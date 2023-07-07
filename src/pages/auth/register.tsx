@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 
-import { NextPage } from "next";
+import { GetServerSideProps, NextPage } from "next";
 import NextLink from "next/link";
 import { Box, Button,  Chip,  Grid, Link, TextField, Typography } from "@mui/material";
 import { ErrorOutline } from "@mui/icons-material";
@@ -10,6 +10,7 @@ import { AuthLayout } from "@/components/layouts";
 import { validations } from "@/utils";
 import { AuthContext } from "@/context";
 import { useRouter } from "next/router";
+import { getSession, signIn } from "next-auth/react";
 
 type FormData = {
     email: string,
@@ -35,8 +36,11 @@ const RegisterPage: NextPage = () => {
             setErrorMessage(validRegister.message || '');
             return
         }
+        /*
         const destination = router.query.p?.toString() || '/'//Esto es para volver a la misma pagina que me encontraba antes del register
         router.replace(destination);
+        */
+        await signIn('credentials', {email, password});
     }
     return (
       <AuthLayout title={"Registrar cuenta"} pageDescription={"Registrar una cuenta"}>
@@ -114,4 +118,23 @@ const RegisterPage: NextPage = () => {
     )
   }
   
+  export const getServerSideProps: GetServerSideProps = async (ctx) => {
+    const { req, query } = ctx;
+    const session = await getSession({ req });
+    const { p = '/'} = query as {p: string};
+    
+    
+    if(session){
+        return {
+            redirect:{
+                destination: p,
+                permanent: false,
+            }
+        }
+    }
+    return {
+        props: { }
+    }
+  }
+
   export default RegisterPage;

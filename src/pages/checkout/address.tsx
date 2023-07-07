@@ -4,9 +4,9 @@ import { Button, FormControl, Grid, Box, MenuItem, TextField, Typography } from 
 import { validations } from "@/utils";
 import { countries } from "@/utils";
 import { useForm } from "react-hook-form";
-import Cookie from "js-cookie";
+import Cookies from "js-cookie";
 import { useRouter } from "next/router";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { CartContext } from "@/context";
 
 type FormData = {
@@ -24,16 +24,16 @@ type FormData = {
 
 const getAddressFromCookies = (): FormData => {
     return {
-       firstName: Cookie.get('firstName') || '',
-       lastName: Cookie.get('lastName') || '',
-       email: Cookie.get('email') || '',
-       address: Cookie.get('address') || '',
-       address2: Cookie.get('address2') || '',
-       zip: Cookie.get('zip') || '',
-       departament: Cookie.get('departament') || '',
-       city: Cookie.get('city') || '',
-       country: Cookie.get('country') || '',
-       phone: Cookie.get('phone') || '', 
+       firstName: Cookies.get('firstName') || '',
+       lastName: Cookies.get('lastName') || '',
+       email: Cookies.get('email') || '',
+       address: Cookies.get('address') || '',
+       address2: Cookies.get('address2') || '',
+       zip: Cookies.get('zip') || '',
+       departament: Cookies.get('departament') || '',
+       city: Cookies.get('city') || '',
+       country: 'URY',
+       phone: Cookies.get('phone') || '', 
     }
 }
 
@@ -41,10 +41,19 @@ const AddressPage: NextPage = () => {
 
     const router = useRouter();
     const {updateAddress} = useContext(CartContext);
+    const [countryValueDefault, setCountryDefault] = useState('URY');
 
-    const {register, handleSubmit, formState: {errors}} = useForm<FormData>({
+    const {register, handleSubmit, resetField, setValue, getValues, formState: {errors}} = useForm<FormData>({
         defaultValues: getAddressFromCookies()
     });
+
+    useEffect(() => {
+        console.log(Cookies.get("country"))
+        resetField("country")
+        setValue("country", Cookies.get("country") || 'BOL');
+    }, [])
+ 
+
     
     const onSubmitAddress = async (formData: FormData) => {
         updateAddress(formData)
@@ -161,7 +170,7 @@ const AddressPage: NextPage = () => {
                     {...register('city',{
                         required: 'Este campo es requerido',
                         minLength: { value: 1, message: 'Minimo 1 caracteres'},
-                        maxLength: { value: 5, message: 'Maximo 5 caracteres'}
+                        maxLength: { value: 30, message: 'Maximo 30 caracteres'}
                     })}
                     error={!!errors.city}
                     helperText={errors.city?.message}
@@ -171,7 +180,7 @@ const AddressPage: NextPage = () => {
                 <FormControl fullWidth>
                     <TextField
                         select
-                        defaultValue={Cookie.get('country') || 'URY'}
+                        defaultValue={'URY'}
                         variant="filled"
                         label="País"
                         {...register('country',{
@@ -220,7 +229,7 @@ const AddressPage: NextPage = () => {
 /*
   export const getServerSideProps: GetServerSideProps = async (ctx) => {
     const {req} = ctx;
-    const {token = ''} = req.cookies;
+    const {token = ''} = req.Cookiess;
     let userId = '';
     let isValidToken = false;
     try {

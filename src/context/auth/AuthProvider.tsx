@@ -1,5 +1,6 @@
 import { PropsWithChildren, useReducer, useEffect, useState } from 'react';
 import { AuthContext, authReducer } from './';
+import {useSession, signOut} from 'next-auth/react'
 import { IUser } from '@/interfaces';
 import { shopApi } from '@/api';
 import Cookies from 'js-cookie';
@@ -19,8 +20,15 @@ export const AuthProvider = (props: PropsWithChildren) => {
 
     const {children} = props;
     const [state, dispatch] = useReducer(authReducer, AUTH_INITIAL_STATE);
+    const {data, status} = useSession();
     const router = useRouter();
 
+    useEffect(() => {
+        if(status === 'authenticated'){
+            dispatch({type:'Login', payload: data?.user as IUser});
+        }
+    }, [status, data])
+/*
     useEffect(()=>{
         if(Cookies.get('token'))
             checkToken();
@@ -37,7 +45,7 @@ export const AuthProvider = (props: PropsWithChildren) => {
             dispatch({type:'Logout'});
         }
     }
-
+*/
        
     const loginUser = async (email: string, password: string):Promise<boolean> => {
         try {
@@ -74,7 +82,6 @@ export const AuthProvider = (props: PropsWithChildren) => {
         }
     }
     const logout = () =>{
-        Cookies.remove('token');
         Cookies.remove('cart')
         Cookies.remove('lastName');
         Cookies.remove('firstName');
@@ -86,8 +93,8 @@ export const AuthProvider = (props: PropsWithChildren) => {
         Cookies.remove('city');
         Cookies.remove('country');
         Cookies.remove('phone');
-        dispatch({type:'Logout'});
-        router.reload();
+        signOut();
+        //dispatch({type:'Logout'});
     }
     
     return(

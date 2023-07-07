@@ -1,5 +1,5 @@
 import { Product } from '@/models';
-import {db} from './';
+import {db} from '.';
 import { IProduct } from '@/interfaces';
 
 export const getProductBySlug = async(slug: string): Promise<IProduct | null> => {

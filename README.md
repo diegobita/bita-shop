@@ -19,3 +19,6 @@ Renombrar el archivo __.env.template__ a __.env__
 
 Llamar a:
 ```http://localhost:3000/api/seed```
+
+## Construir imagen docker
+docker build -t nextjs-bita-shop .

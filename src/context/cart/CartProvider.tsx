@@ -1,7 +1,8 @@
 import { PropsWithChildren, useReducer, useEffect, useState } from 'react';
 import { CartContext, cartReducer } from './';
-import { ICartProduct } from '@/interfaces';
+import { BillingAddress, ICartProduct, ShippingAddress } from '@/interfaces';
 import Cookie from 'js-cookie';
+import { shopApi } from '@/api';
 
 export interface CartState {
     isLoaded: boolean;
@@ -12,31 +13,6 @@ export interface CartState {
     total: number;
     shippingAddress?: ShippingAddress,
     billingAddress?: BillingAddress,
-}
-
-export interface ShippingAddress {
-    firstName: string;
-    lastName: string;
-    email:string;
-    address: string;
-    address2?: string;
-    zip: string;
-    departament: string;
-    city: string,
-    country: string;
-    phone: string;
-}
-export interface BillingAddress {
-    firstName: string;
-    lastName: string;
-    email:string;
-    address: string;
-    address2?: string;
-    zip: string;
-    departament: string;
-    city: string,
-    country: string;
-    phone: string;
 }
 
 const CART_INITIAL_STATE: CartState = {
@@ -61,7 +37,6 @@ export const CartProvider = (props: PropsWithChildren) => {
         if (!isMounted) {
             try{
                 const cookieProducts = Cookie.get('cart') ? JSON.parse(Cookie.get('cart')!) : []
-                console.log({cookieProducts})
                 dispatch({type: 'LoadCart_from_Cookies_Or_Storage', payload: cookieProducts});
                 setIsMounted(true);
             }catch(error){
@@ -113,7 +88,6 @@ export const CartProvider = (props: PropsWithChildren) => {
 
         const existProductInCart = state.cart.some(prod => prod._id === product._id && product.size === prod.size);
         if(!existProductInCart){
-            console.log([...state.cart, product])
             return dispatch({type: 'Update_products_in_cart', payload: [...state.cart, product]})
         }
         else{
@@ -150,6 +124,17 @@ export const CartProvider = (props: PropsWithChildren) => {
         Cookie.set('phone', address.phone);
         dispatch({type:'Update_Address_shipping', payload: address})
     }
+
+    const createOrder = async () => {
+        try{
+            const body = {};
+
+            const {data} = await shopApi.post('/orders', body);
+            console.log({data})
+        }catch(error){
+            console.log(error);
+        }
+    }
     
     
     return(
@@ -161,6 +146,8 @@ export const CartProvider = (props: PropsWithChildren) => {
             changeQuantityProductInCart,
             removeProductCart,
             updateAddress,
+
+            createOrder,
         }}>
             {children}
         </CartContext.Provider>

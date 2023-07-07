@@ -1,14 +1,15 @@
-import { NextPage } from "next";
+import { useContext, useEffect, useState } from "react";
+
+import { GetServerSideProps, NextPage } from "next";
 import NextLink from "next/link";
-import { AuthLayout } from "@/components/layouts";
-import {Box, Button, Chip, Grid, Link, TextField, Typography} from "@mui/material";
-import {useForm} from "react-hook-form";
-import {validations} from '@/utils'
-import {shopApi} from "@/api";
-import {ErrorOutline} from "@mui/icons-material";
-import {useContext, useState} from "react";
-import { AuthContext } from "@/context";
 import { useRouter } from "next/router";
+import { signIn, getSession, getProviders } from "next-auth/react";
+
+import { useForm } from "react-hook-form";
+import { AuthLayout } from "@/components/layouts";
+import { validations } from '@/utils';
+import { ErrorOutline } from "@mui/icons-material";
+import { Box, Button, Chip, Divider, Grid, Link, TextField, Typography } from "@mui/material";
 
 type FormData = {
     email: string,
@@ -17,16 +18,23 @@ type FormData = {
 
 const LoginPage: NextPage = () => {
 
-    const {loginUser} = useContext(AuthContext);
     const router = useRouter();
     const {register, handleSubmit, formState: {errors}} = useForm<FormData>();
     const [showError, setShowError] = useState(false);
 
+    const [providers, setProviders] = useState<any>({});
+
+    useEffect(() => {
+        getProviders()
+            .then( provider =>{
+                setProviders(provider)
+            })
+    },[])
 
     const onLoginUser = async (formData: FormData) => {
         const {email, password} = formData;
         setShowError(false);
-
+        /* Codigo para autenticacion manual, sin nextauth
         const validLogin = await loginUser(email, password);
 
         if(!validLogin){
@@ -35,6 +43,8 @@ const LoginPage: NextPage = () => {
         }
         const destination = router.query.p?.toString() || '/'//Esto es para volver a la misma pagina que me encontraba antes del login
         router.replace(destination);
+        */
+        await signIn('credentials', {email, password});
     }
 
     return (
@@ -93,11 +103,51 @@ const LoginPage: NextPage = () => {
                                 </Link>
                             </NextLink>
                         </Grid>
+                        <Grid item xs= {12} display={'flex'} flexDirection={'column'} justifyContent={'center'}>
+                            <Divider sx={{width: '100%', mb: 2}}/>
+                            {
+                                Object.values(providers).map((provider: any) => {
+                                    if(provider.id === 'credentials')
+                                        return;
+                                    return(
+                                        <Button
+                                            key={provider.id}
+                                            variant="outlined"
+                                            fullWidth
+                                            color="primary"
+                                            sx={{ mb: 1}}
+                                            onClick={ () => signIn(provider.id)}
+                                        >
+                                            {provider.name}
+                                        </Button>
+                                    )
+                                })
+                            }
+                        </Grid>
                     </Grid>
                 </Box>
             </form>
         </AuthLayout>
     )
+  }
+
+  export const getServerSideProps: GetServerSideProps = async (ctx) => {
+    const { req, query } = ctx;
+    const session = await getSession({ req });
+    const { p = '/'} = query as {p: string};
+    
+    
+    if(session){
+        return {
+            redirect:{
+                destination: p,
+                permanent: false,
+            }
+        }
+    }
+    return {
+        props: { }
+    }
   }
   
   export default LoginPage;
