@@ -8,18 +8,18 @@ import { useRouter } from "next/router";
 
 const CartPage: NextPage = () => {
     
-    const {numberOfItmes, isLoaded} = useContext(CartContext);
+    const {numberOfItems, isLoaded} = useContext(CartContext);
     const router = useRouter();
     useEffect(() => {
-        if(isLoaded && numberOfItmes === 0)
+        if(isLoaded && numberOfItems === 0)
             router.replace("/cart/empty");
-    },[isLoaded, numberOfItmes, router])
+    },[isLoaded, numberOfItems, router])
     
-    if(!isLoaded || numberOfItmes ===0){
+    if(!isLoaded || numberOfItems ===0){
         return(<></>)
     }
     return (
-      <ShopLayout title={"Carrito - " + numberOfItmes + (numberOfItmes > 1 ? " items" : " items")} pageDescription={"Carrito de compras"}>
+      <ShopLayout title={"Carrito - " + numberOfItems + (numberOfItems > 1 ? " items" : " items")} pageDescription={"Carrito de compras"}>
         <Typography variant="h1" component='h1'>Carrito</Typography>
         <Grid container>
             <Grid item xs={12} sm={7}>

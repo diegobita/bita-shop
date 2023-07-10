@@ -1,24 +1,25 @@
 import { PropsWithChildren, useReducer, useEffect, useState } from 'react';
 import { CartContext, cartReducer } from './';
-import { BillingAddress, ICartProduct, ShippingAddress } from '@/interfaces';
+import {IBillingAddress, ICartProduct, IOrder, IShippingAddress} from '@/interfaces';
 import Cookie from 'js-cookie';
 import { shopApi } from '@/api';
+import Cart from "@/pages/cart";
 
 export interface CartState {
     isLoaded: boolean;
     cart: ICartProduct[];
-    numberOfItmes: number;
+    numberOfItems: number;
     subtotal: number;
     tax: number;
     total: number;
-    shippingAddress?: ShippingAddress,
-    billingAddress?: BillingAddress,
+    shippingAddress?: IShippingAddress,
+    billingAddress?: IBillingAddress,
 }
 
 const CART_INITIAL_STATE: CartState = {
     isLoaded: false,
     cart: [],
-    numberOfItmes: 0,
+    numberOfItems: 0,
     subtotal: 0,
     tax: 0,
     total: 0,
@@ -70,13 +71,13 @@ export const CartProvider = (props: PropsWithChildren) => {
     }, [])
 
     useEffect(() => {
-        const numberOfItmes = state.cart.reduce((prev, currentProduct) => currentProduct.quantity + prev,0);
+        const numberOfItems = state.cart.reduce((prev, currentProduct) => currentProduct.quantity + prev,0);
         const subtotal = state.cart.reduce((prev, currentProduct) => (currentProduct.quantity * currentProduct.price)+ prev,0);;
         const tax = subtotal * Number(process.env.NEXT_PUBLIC_TAX_RATE || 0);
         const total = subtotal + tax;
 
         const orderSumary = {
-            numberOfItmes,
+            numberOfItems,
             subtotal,
             tax,
             total,
@@ -111,7 +112,7 @@ export const CartProvider = (props: PropsWithChildren) => {
         dispatch({type: 'Remove_product_cart', payload: product})
     }
 
-    const updateAddress = (address: ShippingAddress) =>{
+    const updateAddress = (address: IShippingAddress) =>{
         Cookie.set('lastName', address.lastName);
         Cookie.set('firstName', address.firstName);
         Cookie.set('email', address.email);
@@ -126,9 +127,24 @@ export const CartProvider = (props: PropsWithChildren) => {
     }
 
     const createOrder = async () => {
-        try{
-            const body = {};
+        if(!state.shippingAddress){
+            throw new Error('No hay dirección de entrega')
+        }
 
+        const body: IOrder = {
+            orderItems: state.cart.map( p => ({
+                ...p,
+                size: p.size!
+            })),
+            shippingAddress: state.shippingAddress,
+            billingAddress: state.shippingAddress,
+            numberOfItems: state.numberOfItems,
+            subtotal: state.subtotal,
+            tax: state.tax,
+            total: state.total,
+            isPaid: false,
+        }
+        try{
             const {data} = await shopApi.post('/orders', body);
             console.log({data})
         }catch(error){

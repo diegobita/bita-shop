@@ -16,6 +16,7 @@ export async function middleware (req: NextRequest) {
     }
 
     return NextResponse.next();
+    /*
     if(req.nextUrl.pathname.startsWith('/checkout/')){
         console.log("Checkout");
         const token = req.cookies.get('token')?.value || '';
@@ -31,7 +32,7 @@ export async function middleware (req: NextRequest) {
             return NextResponse.redirect(new URL(`/auth/login?p=${requestedPage}`, req.url))
         }
     }
-    
+    */
 
     
 }

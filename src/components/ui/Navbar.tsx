@@ -10,7 +10,7 @@ export const NavBar = () => {
 
     const router = useRouter();
     const {toggleSideMenu} = useContext(UIContext);
-    const {numberOfItmes} = useContext(CartContext);
+    const {numberOfItems} = useContext(CartContext);
 
     const [search, setSearch] = useState('');
     const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -100,7 +100,7 @@ export const NavBar = () => {
                 <NextLink href={'/cart'} passHref>
                     <Link component={'span'}>
                         <IconButton>
-                            <Badge badgeContent={numberOfItmes} color='secondary'>
+                            <Badge badgeContent={numberOfItems} color='secondary'>
                                 <ShoppingCartOutlined/>
                             </Badge>
                         </IconButton>

@@ -2,8 +2,9 @@ import NextAuth from "next-auth"
 import GithubProvider from "next-auth/providers/github"
 import CredentialsProvider from "next-auth/providers/credentials";
 import { dbUsers } from "@/database";
+import type { NextAuthOptions} from 'next-auth'
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
   providers: [
 
@@ -44,9 +45,6 @@ export default NextAuth({
 
   callbacks: {
     async jwt({ token, account, user }) {
-
-      //console.log({ token, account, user })
-
       if (account) {
         token.accessToken = account.access_token;
         switch (account.type) {
@@ -66,10 +64,12 @@ export default NextAuth({
     async session({ session, token, user }) {
       
       //console.log({ session, token, user })
-      session.accessToken = token.accessToken;
+      session.accessToken = token.accessToken as string
       session.user = token.user as any;
 
       return session;
     }
   }
-});
+};
+
+export default NextAuth(authOptions);

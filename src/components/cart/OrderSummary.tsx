@@ -9,7 +9,7 @@ interface Props {
 
 export const OrderSummary = (props: Props) =>{
 
-     const {numberOfItmes, subtotal, tax, total} = useContext(CartContext);
+     const {numberOfItems, subtotal, tax, total} = useContext(CartContext);
 
     return(
         <Grid container>
@@ -17,7 +17,7 @@ export const OrderSummary = (props: Props) =>{
                 <Typography>Nº Productos</Typography>
            </Grid>
            <Grid item xs={6} display={'flex'} justifyContent={'end'}>
-                <Typography>{numberOfItmes} {numberOfItmes > 1 ? 'items' : 'item'}</Typography>
+                <Typography>{numberOfItems} {numberOfItems > 1 ? 'items' : 'item'}</Typography>
            </Grid>
            <Grid item xs={6}>
                 <Typography>Subtotal</Typography>

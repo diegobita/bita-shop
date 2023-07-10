@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import {useContext, useEffect, useState} from "react";
 import { NextPage } from "next";
 import { useRouter } from "next/router";
 import NextLink from "next/link"
@@ -12,8 +12,12 @@ import Cookies from "js-cookie";
 
 const SummaryPage: NextPage = () => {
 
-    const {shippingAddress, numberOfItmes, createOrder} = useContext(CartContext);
+    const {shippingAddress, numberOfItems, createOrder} = useContext(CartContext);
     const router = useRouter();
+
+    const [isPosting, setIsPosting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
     useEffect(() => {
         if(!Cookies.get('firstName')){
             router.push('/checkout/address')
@@ -21,6 +25,7 @@ const SummaryPage: NextPage = () => {
     }, [router])
 
     const onCreateOrder = () =>{
+        setIsPosting(true);
         createOrder();
     }
 
@@ -40,7 +45,7 @@ const SummaryPage: NextPage = () => {
             <Grid item xs={12} sm={5}>
                 <Card className="summary-card">
                     <CardContent>
-                        <Typography variant="h2">Resumen ({numberOfItmes} {numberOfItmes === 1 ? 'producto' : 'productos'})</Typography>
+                        <Typography variant="h2">Resumen ({numberOfItems} {numberOfItems === 1 ? 'producto' : 'productos'})</Typography>
                         <Divider sx={{my:1}}/>
 
                         <Box display={'flex'} justifyContent={'space-between'}>
@@ -69,7 +74,9 @@ const SummaryPage: NextPage = () => {
                         </Box>
                         <OrderSummary/>
                         <Box sx={{mt: 3}}>
-                            <Button color="secondary" className="circular-btn" fullWidth onClick={onCreateOrder}>
+                            <Button color="secondary" className="circular-btn" fullWidth onClick={onCreateOrder}
+                                disabled={isPosting}
+                            >
                                 Confirmar orden
                             </Button>
                         </Box>
