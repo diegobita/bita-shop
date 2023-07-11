@@ -1,75 +1,108 @@
-import { NextPage } from "next";
-import NextLink from "next/link"
+import { GetServerSideProps, NextPage } from "next";
 import { ShopLayout } from "@/components/layouts";
-import { Box, Button, Card, CardContent, Chip, Divider, Grid, Link, Typography } from "@mui/material";
+import { PayPalButtons } from "@paypal/react-paypal-js";
+import { Box, Button, Card, CardContent, Chip, Divider, Grid, Typography } from "@mui/material";
 import { CartList, OrderSummary } from "@/components/cart";
 import { CreditCardOffOutlined, CreditScoreOutlined } from "@mui/icons-material";
+import { getSession } from "next-auth/react";
+import { dbOrder } from "@/database";
+import { IOrder } from "@/interfaces";
+import { countries } from "@/utils";
 
-const OrderPage: NextPage = () => {
+interface Props {
+    order: IOrder,
+}
+
+const OrderPage: NextPage<Props> = (props) => {
+    const {order} = props;
+    const {shippingAddress} = order;
     return (
-      <ShopLayout title={"Resumen de orden 123456789"} pageDescription={"Resumen de ornde"}>
-        <Typography variant="h1" component='h1'>Orden Nº 123456789</Typography>
-
-        <Chip
-            sx={{my: 2}}
-            label="Pendiente de pago"
-            variant="outlined"
-            color="error"
-            icon={<CreditCardOffOutlined/>}
-        />
-        <Chip
-            sx={{my: 2}}
-            label="La orden ya fue pagada"
-            variant="outlined"
-            color="success"
-            icon={<CreditScoreOutlined/>}
-        />
-
-        <Grid container>
+      <ShopLayout title={"Resumen de Orden"} pageDescription={"Resumen de orden"}>
+        <Typography variant="h1" component='h1'>{`Orden Nº ${order._id}`}</Typography>
+        {
+            order.isPaid
+            ? (
+                <Chip
+                    sx={{my: 2}}
+                    label="La orden ya fue pagada"
+                    variant="outlined"
+                    color="success"
+                    icon={<CreditScoreOutlined/>}
+                />
+            ): (
+                <Chip
+                    sx={{my: 2}}
+                    label="Pendiente de pago"
+                    variant="outlined"
+                    color="error"
+                    icon={<CreditCardOffOutlined/>}
+                />
+            )
+        }
+      
+        <Grid container className="fadeIn">
             <Grid item xs={12} sm={7}>
-                <CartList editable={false}/>
+                <CartList editable={false} products={order.orderItems}/>
             </Grid>
             <Grid item xs={12} sm={5}>
                 <Card className="summary-card">
                     <CardContent>
-                        <Typography variant="h2">Resumen (3 productos)</Typography>
+                        <Typography variant="h2">Resumen ({order.numberOfItems} {order.numberOfItems > 1 ? "productos" : "producto"})</Typography>
                         <Divider sx={{my:1}}/>
 
                         <Box display={'flex'} justifyContent={'space-between'}>
                             <Typography variant="subtitle1">Dirección de entrega</Typography>
-                            <NextLink href={'/checkout/address'} passHref legacyBehavior>
-                                <Link underline="always">
-                                    Editar
-                                </Link>
-                            </NextLink>
                         </Box>
 
                         
-                        <Typography>Diego Bitabares</Typography>
-                        <Typography>Maldoando</Typography>
-                        <Typography>Uruguay</Typography>
-                        <Typography>12345678</Typography>
+                        <Typography>{shippingAddress.firstName} {shippingAddress.lastName}</Typography>
+                        <Typography>{shippingAddress.address}{shippingAddress.address2 ? `, ${shippingAddress.address2}`: ""}</Typography>
+                        <Typography>{shippingAddress.departament}, {shippingAddress.city}, {shippingAddress.zip}</Typography>
+                        <Typography>{countries.find(c => c.code === shippingAddress.country )?.name}</Typography>
+                        <Typography>{shippingAddress.phone}</Typography>
 
-                        <Box display={'flex'} justifyContent={'end'}>
-                            <NextLink href={'/cart'} passHref legacyBehavior>
-                                <Link underline="always">
-                                    Editar
-                                </Link>
-                            </NextLink>
-                        </Box>
-                        <OrderSummary/>
-                        <Box sx={{mt: 3}}>
-                            <Button color="secondary" className="circular-btn" fullWidth>
-                                Confirmar orden
-                            </Button>
-                        </Box>
-                        <Chip
-                            sx={{my: 2}}
-                            label="La orden ya fue pagada"
-                            variant="outlined"
-                            color="success"
-                            icon={<CreditScoreOutlined/>}
+                        <OrderSummary 
+                            orderValues={{
+                                numberOfItems: order.numberOfItems,
+                                subtotal: order.subtotal,
+                                tax: order.tax, 
+                                total: order.total
+                            }}
                         />
+                        <Box sx={{mt: 3}} display={'flex'} flexDirection={'column'}>
+                            {
+                                order.isPaid 
+                                ? (
+                                    <Chip
+                                        sx={{my: 2}}
+                                        label="La orden ya fue pagada"
+                                        variant="outlined"
+                                        color="success"
+                                        icon={<CreditScoreOutlined/>}
+                                    />
+                                ):(
+                                    <PayPalButtons
+                                        createOrder={(data, actions) => {
+                                            return actions.order.create({
+                                                purchase_units: [
+                                                    {
+                                                        amount: {
+                                                            value: `${order.total}`,
+                                                        },
+                                                    },
+                                                ],
+                                            });
+                                        }}
+                                        onApprove={(data, actions) => {
+                                            return actions.order!.capture().then((details) => {
+                                                const name = details.payer.name!.given_name;
+                                                //alert(`Transaction completed by ${name}`);
+                                            });
+                                        }}
+                                    />
+                                )
+                            }
+                        </Box>
 
                     </CardContent>
                     
@@ -80,6 +113,40 @@ const OrderPage: NextPage = () => {
         </Grid>  
       </ShopLayout>
     )
+  }
+
+  export const getServerSideProps: GetServerSideProps = async (ctx) =>{
+
+    const {req, query} = ctx;
+    const {id = ''}  = query as {id: string};
+
+    const session: any = await getSession({req});
+ 
+    if(!session){
+        return {
+            redirect: {
+                destination: `/auth/login?p=/orders/${id}`,
+                permanent: false,
+            }
+        }
+    }
+
+    const order = await dbOrder.getOrderByIdAndUser(id, session.user.id);
+
+    if(!order){
+        return {
+            redirect: {
+                destination: `/orders/history`,
+                permanent: false,
+            }
+        }
+    }
+
+    return {
+        props:{
+            order,
+        }
+    }
   }
 
   export default OrderPage;

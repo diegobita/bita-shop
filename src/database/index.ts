@@ -4,3 +4,4 @@ export * as dbProducts from './dbProducts';
 export * as seedDatabase from './seed-data';
 export * from './constants';
 export * as dbUsers from './dbUsers';
+export * as dbOrder from './dbOrders';

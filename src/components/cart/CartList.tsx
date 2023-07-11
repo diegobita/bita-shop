@@ -6,23 +6,27 @@ import DeleteSweepOutlinedIcon from '@mui/icons-material/DeleteSweepOutlined';
 import { CartContext } from '@/context';
 import { useContext } from 'react';
 import { CartProduct } from './CartProduct';
+import { ICartProduct, IOrderItems, IProduct } from '@/interfaces';
 
 interface Props {
     editable: boolean;
+    products?: IOrderItems[];
 }
 
 export const CartList = (props: Props) =>{
-    const {editable = false} = props;
+    const {editable = false, products} = props;
     const {cart} = useContext(CartContext); 
 
+    const productsToShow = products ? products : cart;
+
     return(
-        <Box>
+        <Box pr = {3}>
             {
-                cart.map(product => (
+                productsToShow.map(product => (
                     <CartProduct
                         key={product.slug + product.size}
                         editable={editable}
-                        cartProduct={product}
+                        cartProduct={product as ICartProduct}
                     />
                 ))
             }

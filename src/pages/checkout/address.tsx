@@ -50,7 +50,7 @@ const AddressPage: NextPage = () => {
     useEffect(() => {
         console.log(Cookies.get("country"))
         resetField("country")
-        setValue("country", Cookies.get("country") || 'BOL');
+        setValue("country", Cookies.get("country") || 'URY');
     }, [])
  
 

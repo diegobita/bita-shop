@@ -30,8 +30,10 @@ const createOrder = async (req: NextApiRequest, res: NextApiResponse<Data>) =>{
     const { orderItems, total } = req.body as IOrder;
     const session = await getSession({req});
     const token = await getToken({req}) as any;
+
     console.log({session})
     console.log({token})
+
     if(!token){
         return res.status(401).json({message: 'Usuario no autenticado'})
     }
@@ -50,14 +52,18 @@ const createOrder = async (req: NextApiRequest, res: NextApiResponse<Data>) =>{
         }, 0);
         const taxRate = Number(process.env.NEXT_PUBLIC_TAX_RATE);
         const backendTotal = subtotal * (taxRate + 1);
+
         if(total !== backendTotal){
             throw new Error('El total de los productos no coincide');
         }
-        const userId = token.user._id;
+
+        const userId = token.user.id;
         const newOrder = new Order({...req.body, isPaid:false, user: userId})
+        newOrder.total = Math.round(newOrder.total * 100) / 100;
         await newOrder.save({validateBeforeSave: true}) ;
         await db.disconnect();
         return res.status(201).json(newOrder);
+
     }catch(error : any){
         await db.disconnect();
         res.status(400).json({

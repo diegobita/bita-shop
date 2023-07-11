@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import NextLink from "next/link"
 
 import { ShopLayout } from "@/components/layouts";
-import { Box, Button, Card, CardContent, Divider, Grid, Link, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, Chip, Divider, Grid, Link, Typography } from "@mui/material";
 import { CartList, OrderSummary } from "@/components/cart";
 import { CartContext } from "@/context";
 import { countries } from "@/utils";
@@ -24,9 +24,15 @@ const SummaryPage: NextPage = () => {
         }
     }, [router])
 
-    const onCreateOrder = () =>{
+    const onCreateOrder = async() =>{
         setIsPosting(true);
-        createOrder();
+        const {hasError, message} = await createOrder();
+        if(hasError){
+            setIsPosting(false);
+            setErrorMessage(message);
+            return;
+        }
+        router.replace(`/orders/${message}`);
     }
 
     if(!shippingAddress){
@@ -73,12 +79,22 @@ const SummaryPage: NextPage = () => {
                             </NextLink>
                         </Box>
                         <OrderSummary/>
-                        <Box sx={{mt: 3}}>
-                            <Button color="secondary" className="circular-btn" fullWidth onClick={onCreateOrder}
+                        <Box sx={{mt: 3}} display={'flex'} flexDirection={'column'}>
+                            <Button 
+                                color="secondary" 
+                                className="circular-btn" 
+                                fullWidth 
+                                onClick={onCreateOrder}
                                 disabled={isPosting}
                             >
                                 Confirmar orden
                             </Button>
+                            <Chip
+                                color="error"
+                                label={errorMessage}
+                                sx={{display: errorMessage ? 'flex': 'none', mt: 2 }}
+                            />
+
                         </Box>
 
                     </CardContent>

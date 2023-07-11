@@ -3,7 +3,7 @@ import { CartContext, cartReducer } from './';
 import {IBillingAddress, ICartProduct, IOrder, IShippingAddress} from '@/interfaces';
 import Cookie from 'js-cookie';
 import { shopApi } from '@/api';
-import Cart from "@/pages/cart";
+import axios from 'axios';
 
 export interface CartState {
     isLoaded: boolean;
@@ -126,7 +126,7 @@ export const CartProvider = (props: PropsWithChildren) => {
         dispatch({type:'Update_Address_shipping', payload: address})
     }
 
-    const createOrder = async () => {
+    const createOrder = async (): Promise<{hasError: boolean; message: string;}> => {
         if(!state.shippingAddress){
             throw new Error('No hay dirección de entrega')
         }
@@ -145,10 +145,26 @@ export const CartProvider = (props: PropsWithChildren) => {
             isPaid: false,
         }
         try{
-            const {data} = await shopApi.post('/orders', body);
+            const {data} = await shopApi.post<IOrder>('/orders', body);
             console.log({data})
+            dispatch({type: 'Cart_Order_Complete'});
+            return {
+                hasError: false,
+                message: data._id!
+            }
         }catch(error){
             console.log(error);
+            if(axios.isAxiosError(error)){
+                return {
+                    hasError: true,
+                    message: error.response?.data.message
+                }
+            }
+            return {
+                hasError: true,
+                message: "Error interno en creación de la orden, hable con su administrador"
+            }
+            
         }
     }
     
