@@ -1,7 +1,7 @@
 import {useContext, useState} from "react";
 import { useRouter } from "next/router";
 import { Box, Divider, Drawer, IconButton, Input, InputAdornment, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from "@mui/material"
-import { AccountCircleOutlined, AdminPanelSettings, CategoryOutlined, ConfirmationNumberOutlined, EscalatorWarningOutlined, FemaleOutlined, LoginOutlined, MaleOutlined, SearchOutlined, VpnKeyOutlined } from "@mui/icons-material"
+import { AccountCircleOutlined, AdminPanelSettings, CategoryOutlined, ConfirmationNumberOutlined, DashboardOutlined, EscalatorWarningOutlined, FemaleOutlined, LoginOutlined, MaleOutlined, SearchOutlined, VpnKeyOutlined } from "@mui/icons-material"
 import { AuthContext, UIContext } from "@/context";
 
 
@@ -135,6 +135,12 @@ export const SideBar = () => {
                             <Divider />
                             <ListSubheader>Admin Panel</ListSubheader>
 
+                            <ListItemButton onClick={() => navigateTo("/admin")}>
+                                <ListItemIcon>
+                                    <DashboardOutlined/>
+                                </ListItemIcon>
+                                <ListItemText primary={'Dashboard'} />
+                            </ListItemButton>
                             <ListItemButton>
                                 <ListItemIcon>
                                     <CategoryOutlined/>
@@ -148,7 +154,7 @@ export const SideBar = () => {
                                 <ListItemText primary={'Ordenes'} />
                             </ListItemButton>
 
-                            <ListItemButton>
+                            <ListItemButton  onClick={() => navigateTo("/admin/users")}>
                                 <ListItemIcon>
                                     <AdminPanelSettings/>
                                 </ListItemIcon>
