@@ -7,7 +7,7 @@ import { Box, Typography } from "@mui/material";
 
 interface Props {
     title?: string,
-    subtitle: string,
+    subtitle?: string,
     icon?: JSX.Element,
 }
 
@@ -16,6 +16,9 @@ export const AdminLayout = (props: PropsWithChildren<Props>) => {
     const {title, subtitle, icon} = props;
     return (
         <>
+            <Head>
+                <title>Admin - {title}</title>
+            </Head>
             <nav>
                 <AdminNavBar/>
             </nav>
@@ -29,7 +32,7 @@ export const AdminLayout = (props: PropsWithChildren<Props>) => {
                 }}>
                     <Box display={'flex'} flexDirection={'column'}>
                         <Typography variant= 'h1' component='h1'>
-                            {icon}
+                            {icon} {" "}
                             {title}
                         </Typography>
                         <Typography variant='h2' component='h2' mb={1}>
