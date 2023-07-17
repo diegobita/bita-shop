@@ -52,7 +52,7 @@ const informationDashboard = async (req: NextApiRequest, res: NextApiResponse<Da
     ])
 
     await db.disconnect();
-    return res.status(400).json({
+    return res.status(200).json({
         numberOfOrders,
         paidOrders,
         notPaidOrders: numberOfOrders - paidOrders,

@@ -1,8 +1,8 @@
 import { NextPage } from "next";
 import NextLink from "next/link"
 import { AdminLayout } from "@/components/layouts";
-import {  CardMedia, Chip, Grid, Link, MenuItem, Select } from "@mui/material";
-import { CategoryOutlined, ConfirmationNumberOutlined, PeopleOutline } from "@mui/icons-material";
+import {Box, Button, CardMedia, Chip, Grid, Link, MenuItem, Select} from "@mui/material";
+import {AddOutlined, CategoryOutlined, ConfirmationNumberOutlined, PeopleOutline} from "@mui/icons-material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import useSWR from "swr";
 import { IOrder, IProduct, IUser } from "@/interfaces";
@@ -78,7 +78,16 @@ const ProductsPage: NextPage = () => {
 
     return (
       <AdminLayout title={"Productos"} subtitle={`Mantenimiento de productos (${products.length})`} icon={<CategoryOutlined/>} >
-        <Grid container spacing={2} pt={2}>
+          <Box display={'flex'} justifyContent={'end'}  sx={{mb: 2}}>
+            <Button
+                startIcon={<AddOutlined/>}
+                color={'secondary'}
+                href={'/admin/products/new'}
+            >
+                Nuevo producto
+            </Button>
+          </Box>
+          <Grid container spacing={2} pt={2}>
             <Grid item xs={12} sx={{ height: 650, width:'100%'}}>
                 <DataGrid
                             rows={productsRows}

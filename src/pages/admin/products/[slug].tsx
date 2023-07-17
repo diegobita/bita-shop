@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react'
+import React, {ChangeEvent, FC, useEffect, useState} from 'react'
 import { GetServerSideProps } from 'next'
 import { AdminLayout } from '../../../components/layouts'
 import { IProduct } from '../../../interfaces';
@@ -6,6 +6,9 @@ import { DriveFileRenameOutline, SaveOutlined, UploadOutlined } from '@mui/icons
 import { dbProducts } from '../../../database';
 import { Box, Button, capitalize, Card, CardActions, CardMedia, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormGroup, FormLabel, Grid, ListItem, Paper, Radio, RadioGroup, TextField } from '@mui/material';
 import { useForm } from 'react-hook-form';
+import {shopApi} from "@/api";
+import {Product} from "@/models";
+import {useRouter} from "next/router";
 
 
 const validTypes  = ['shirts','pants','hoodies','hats']
@@ -32,7 +35,10 @@ interface Props {
 
 const ProductAdminPage = (props: Props) => {
 
+    const router = useRouter();
     const {product} = props;
+    const [newTag, setNewTag] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     const {register, handleSubmit, formState: {errors}, getValues, setValue, watch} = useForm<FormData>({
         defaultValues: product
@@ -61,18 +67,67 @@ const ProductAdminPage = (props: Props) => {
         setValue('sizes',[...currentSizes, size], {shouldValidate:true});
     }
 
-    const onDeleteTag = ( tag: string ) => {
-
+    const onNewTag = ( tag: string ) => {
+        const newTagValue = newTag.trim().toLowerCase();
+        setNewTag("");
+        const currentTags = getValues('tags');
+        if(currentTags.includes(newTagValue)){
+            return
+        }
+        currentTags.push(newTagValue);
     }
 
-    const onSubmit = ( formData: FormData ) => {
+    const onDeleteTag = ( tag: string ) => {
+        const updatedTags = getValues("tags").filter( t => t !== tag);
+        setValue("tags", updatedTags, {shouldValidate:true});
+    }
 
+    const onFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
+        if(!event.target.files || event.target.files.length === 0){
+            return;
+        }
+
+        try{
+            for(const file of event.target.files){
+                const formData = new FormData();
+                formData.append('file', file);
+                const { data } = await shopApi.post<{message: string}>('/admin/upload', formData);
+                console.log(data);
+            }
+        }catch(error){
+
+        }
+        console.log(event.target.files)
+    }
+
+    const onSubmit = async( formData: FormData ) => {
+        if(formData.images.length < 2){
+            return alert("Mínimo 2 imágenes")
+        }
+        setIsSaving(true);
+
+        try{
+            const config = {
+                url: '/admin/products',
+                method: formData._id ? "PUT" : "POST",
+                data: formData,
+            }
+            const resp = await shopApi(config);
+            console.log(resp.data)
+            if(!formData._id){
+                router.replace(`/admin/products/${resp.data.slug}`)
+            }else{
+                setIsSaving(false);
+            }
+        }catch(error){
+            console.log(error);
+        }
     }
 
     return (
         <AdminLayout 
             title={'Producto'} 
-            subtitle={`Editando: ${ product.title }`}
+            subtitle={product._id ? `Editando: ${ product.title }`: 'Nuevo producto'}
             icon={ <DriveFileRenameOutline /> }
         >
             <Box component={'form'} onSubmit={handleSubmit(onSubmit)}>
@@ -82,6 +137,7 @@ const ProductAdminPage = (props: Props) => {
                         startIcon={ <SaveOutlined /> }
                         sx={{ width: '150px' }}
                         type="submit"
+                        disabled={isSaving}
                         >
                         Guardar
                     </Button>
@@ -94,7 +150,7 @@ const ProductAdminPage = (props: Props) => {
                         <TextField
                             label="Título"
                             variant="filled"
-                            fullWidth 
+                            fullWidth
                             sx={{ mb: 1 }}
                             { ...register('title', {
                                  required: 'Este campo es requerido',
@@ -107,8 +163,9 @@ const ProductAdminPage = (props: Props) => {
                         <TextField
                             label="Descripción"
                             variant="filled"
-                            fullWidth 
+                            fullWidth
                             multiline
+                            minRows={5}//TODO Ver esto que cuando las columnas son menos de las que necesita da error de mui en consola
                             sx={{ mb: 1 }}
                             { ...register('description', {
                                 required: 'Este campo es requerido',
@@ -122,7 +179,7 @@ const ProductAdminPage = (props: Props) => {
                             label="Inventario"
                             type='number'
                             variant="filled"
-                            fullWidth 
+                            fullWidth
                             sx={{ mb: 1 }}
                             { ...register('inStock', {
                                 required: 'Este campo es requerido',
@@ -131,12 +188,12 @@ const ProductAdminPage = (props: Props) => {
                            error={ !!errors.inStock }
                            helperText={ errors.inStock?.message }
                         />
-                        
+
                         <TextField
                             label="Precio"
                             type='number'
                             variant="filled"
-                            fullWidth 
+                            fullWidth
                             sx={{ mb: 1 }}
                             { ...register('price', {
                                 required: 'Este campo es requerido',
@@ -157,7 +214,7 @@ const ProductAdminPage = (props: Props) => {
                             >
                                 {
                                     validTypes.map( option => (
-                                        <FormControlLabel 
+                                        <FormControlLabel
                                             key={ option }
                                             value={ option }
                                             control={ <Radio color='secondary' /> }
@@ -171,14 +228,14 @@ const ProductAdminPage = (props: Props) => {
                         <FormControl sx={{ mb: 1 }}>
                             <FormLabel>Género</FormLabel>
                             <RadioGroup
-                           
+
                                 row
                                 value={ getValues('gender') }
                                 onChange={ (e) => setValue('gender', e.target.value, {shouldValidate: true}) }
                             >
                                 {
                                     validGender.map( option => (
-                                        <FormControlLabel 
+                                        <FormControlLabel
                                             key={ option }
                                             value={ option }
                                             control={ <Radio color='secondary' /> }
@@ -193,11 +250,11 @@ const ProductAdminPage = (props: Props) => {
                             <FormLabel>Tallas</FormLabel>
                             {
                                 validSizes.map(size => (
-                                    <FormControlLabel 
-                                        key={size} 
-                                        control={<Checkbox checked={getValues('sizes').includes(size)} />} 
+                                    <FormControlLabel
+                                        key={size}
+                                        control={<Checkbox checked={getValues('sizes').includes(size)} />}
                                         label={ size }
-                                        onChange={() => onChangeSize(size)} 
+                                        onChange={() => onChangeSize(size)}
                                     />
                                 ))
                             }
@@ -224,11 +281,14 @@ const ProductAdminPage = (props: Props) => {
                         <TextField
                             label="Etiquetas"
                             variant="filled"
-                            fullWidth 
+                            fullWidth
                             sx={{ mb: 1 }}
+                            value={newTag}
+                            onChange={(event) => setNewTag(event.target.value)}
+                            onKeyUp={(event) => event.code === 'Space' ? onNewTag() : undefined}
                             helperText="Presiona [spacebar] para agregar"
                         />
-                        
+
                         <Box sx={{
                             display: 'flex',
                             flexWrap: 'wrap',
@@ -238,7 +298,7 @@ const ProductAdminPage = (props: Props) => {
                         }}
                         component="ul">
                             {
-                                product.tags.map((tag) => {
+                                getValues('tags').map((tag) => {
 
                                 return (
                                     <Chip
@@ -254,7 +314,7 @@ const ProductAdminPage = (props: Props) => {
                         </Box>
 
                         <Divider sx={{ my: 2  }}/>
-                        
+
                         <Box display='flex' flexDirection="column">
                             <FormLabel sx={{ mb:1}}>Imágenes</FormLabel>
                             <Button
@@ -262,11 +322,19 @@ const ProductAdminPage = (props: Props) => {
                                 fullWidth
                                 startIcon={ <UploadOutlined /> }
                                 sx={{ mb: 3 }}
+                                component={'label'}
                             >
                                 Cargar imagen
+                                <input
+                                    type={'file'}
+                                    hidden
+                                    multiple
+                                    accept={'image/png, image/gif, image/jpeg'}
+                                    onChange={onFileSelected}
+                                />
                             </Button>
 
-                            <Chip 
+                            <Chip
                                 label="Es necesario al 2 imagenes"
                                 color='error'
                                 variant='outlined'
@@ -277,7 +345,7 @@ const ProductAdminPage = (props: Props) => {
                                     product.images.map( img => (
                                         <Grid item xs={4} sm={3} key={img}>
                                             <Card>
-                                                <CardMedia 
+                                                <CardMedia
                                                     component='img'
                                                     className='fadeIn'
                                                     image={ `/products/${ img }` }
@@ -311,8 +379,18 @@ const ProductAdminPage = (props: Props) => {
 export const getServerSideProps: GetServerSideProps = async ({ query }) => {
     
     const { slug = ''} = query;
-    
-    const product = await dbProducts.getProductBySlug(slug.toString());
+
+    let product: IProduct | null;
+
+    if(slug === 'new'){
+        const tempProduct = JSON.parse(JSON.stringify(new Product));
+        delete tempProduct._id;
+        tempProduct.images = ['img1.jpg', 'img2.jpg'];
+        product = tempProduct;
+    }else{
+        product = await dbProducts.getProductBySlug(slug.toString());
+    }
+
 
     if ( !product ) {
         return {
