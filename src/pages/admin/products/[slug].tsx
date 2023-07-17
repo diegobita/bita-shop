@@ -67,7 +67,7 @@ const ProductAdminPage = (props: Props) => {
         setValue('sizes',[...currentSizes, size], {shouldValidate:true});
     }
 
-    const onNewTag = ( tag: string ) => {
+    const onNewTag = ( ) => {
         const newTagValue = newTag.trim().toLowerCase();
         setNewTag("");
         const currentTags = getValues('tags');
@@ -93,12 +93,17 @@ const ProductAdminPage = (props: Props) => {
                 formData.append('file', file);
                 const { data } = await shopApi.post<{message: string}>('/admin/upload', formData);
                 console.log(data);
+                setValue('images', [...getValues('images'), data.message], {shouldValidate: true})
             }
         }catch(error){
 
         }
         console.log(event.target.files)
     }
+
+    const onDeleteImage = async (img: string) => {
+        setValue('images', getValues('images').filter( image => image !== img), {shouldValidate: true});
+    } 
 
     const onSubmit = async( formData: FormData ) => {
         if(formData.images.length < 2){
@@ -267,6 +272,7 @@ const ProductAdminPage = (props: Props) => {
                         <TextField
                             label="Slug - URL"
                             variant="filled"
+                            autoFocus
                             fullWidth
                             sx={{ mb: 1 }}
                             { ...register('slug', {
@@ -338,21 +344,26 @@ const ProductAdminPage = (props: Props) => {
                                 label="Es necesario al 2 imagenes"
                                 color='error'
                                 variant='outlined'
+                                sx={{display: getValues('images').length < 2 ? 'flex' : 'none'}}
                             />
 
                             <Grid container spacing={2}>
                                 {
-                                    product.images.map( img => (
+                                    getValues('images').map( img => (
                                         <Grid item xs={4} sm={3} key={img}>
                                             <Card>
                                                 <CardMedia
                                                     component='img'
                                                     className='fadeIn'
-                                                    image={ `/products/${ img }` }
+                                                    image={ `${ img }` }
                                                     alt={ img }
                                                 />
                                                 <CardActions>
-                                                    <Button fullWidth color="error">
+                                                    <Button 
+                                                        fullWidth 
+                                                        color="error"
+                                                        onClick={() => onDeleteImage(img)}
+                                                    >
                                                         Borrar
                                                     </Button>
                                                 </CardActions>
@@ -385,7 +396,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
     if(slug === 'new'){
         const tempProduct = JSON.parse(JSON.stringify(new Product));
         delete tempProduct._id;
-        tempProduct.images = ['img1.jpg', 'img2.jpg'];
+        //tempProduct.images = ['img1.jpg', 'img2.jpg'];
         product = tempProduct;
     }else{
         product = await dbProducts.getProductBySlug(slug.toString());

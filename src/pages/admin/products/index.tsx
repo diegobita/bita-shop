@@ -1,12 +1,11 @@
 import { NextPage } from "next";
 import NextLink from "next/link"
 import { AdminLayout } from "@/components/layouts";
-import {Box, Button, CardMedia, Chip, Grid, Link, MenuItem, Select} from "@mui/material";
-import {AddOutlined, CategoryOutlined, ConfirmationNumberOutlined, PeopleOutline} from "@mui/icons-material";
+import {Box, Button, CardMedia, Grid, Link} from "@mui/material";
+import {AddOutlined, CategoryOutlined} from "@mui/icons-material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import useSWR from "swr";
-import { IOrder, IProduct, IUser } from "@/interfaces";
-import { shopApi } from "@/api";
+import {  IProduct } from "@/interfaces";
 import { useEffect, useState } from "react";
 
 
@@ -21,7 +20,7 @@ const columns: GridColDef[] = [
                         component={'img'}
                         alt={row.t}
                         className="fadeIn"
-                        image={`/products/${row.img}`}
+                        image={`${row.img}`}
                     />
                 </NextLink>
             )

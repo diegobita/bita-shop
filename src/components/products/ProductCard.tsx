@@ -16,7 +16,7 @@ export const ProductCard = ({product}: Props) =>{
     const [isHovered, setIsHovered] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     const productImage = useMemo(() => {
-        return isHovered ?  `products/${product.images[1]}` : `products/${product.images[0]}`
+        return isHovered ?  product.images[1] : product.images[0]
     }, [isHovered, product.images])
 
     const inStockChip = (stock: number) =>{
@@ -58,7 +58,7 @@ export const ProductCard = ({product}: Props) =>{
                             <CardMedia
                                 component={'img'}
                                 className="fadeIn"
-                                image={`/${productImage}`}
+                                image={productImage}
                                 alt={product.title}
                                 onLoad={() => setIsImageLoaded(true)}
                             />

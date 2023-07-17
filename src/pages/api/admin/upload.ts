@@ -27,10 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
 }
 
-const saveFileFS = async(file: formidable.File) => {
-    console.log({file})
-    console.log(file[0].filepath)
-    console.log(file[0].originalFilename)
+const saveFileFS = async(file: formidable.File[]) => {
+    
     const data = fs.readFileSync(file[0].filepath);
     console.log(`./public/${file[0].originalFilename}`)
     fs.writeFileSync(`./public/${file[0].originalFilename}`, data);
@@ -38,29 +36,51 @@ const saveFileFS = async(file: formidable.File) => {
     return;
 }
 
-const saveFile = async(file: formidable.File): Promise<string> => {
-    const data = await cloudinary.uploader.upload(file[0].filepath);
+const saveFile = async(file: formidable.File[]): Promise<string> => {
+    const {filepath} = file[0];
+    const data = await cloudinary.uploader.upload(filepath);
     return data.secure_url;
 }
 
-const parseFiles = async (req: NextApiRequest):Promise<string> => {
+const parseFiles2 = async (req: NextApiRequest):Promise<string> => {
     return new Promise((resolve, reject) => {
         //const form = new formidable.IncomingForm();
         const form = formidable({});
         form.parse(req, async (err, fields, files) => {
-            console.log({err, fields, files})
 
             if (err){
                 return reject(err)
             }
-            const filePath = await saveFile(files.file as formidable.File);
-            resolve(filePath);
+            try {
+                const filePath = await saveFile(files.file as formidable.File[]);
+                resolve(filePath);
+            } catch (error) {
+                reject(error);
+            }
+            
         })
     })
 }
+const parseFiles = async (req: NextApiRequest) => {
+    
+    const form = formidable({});
+    const [fields, files] = await form.parse(req);
+
+    console.log(files.file)
+    const filePath = await saveFile(files.file as formidable.File[]);
+    return filePath;
+   
+        
+  
+}
 
 const uploadFile = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
-
-    const imageUrl = await parseFiles(req);
-    return res.status(200).json({message: imageUrl})
+    try{
+        const imageUrl = await parseFiles(req);
+        return res.status(200).json({message: imageUrl as string})
+    }catch(error){
+        console.log(error);
+        return res.status(400).json({message: "Error al subir la imagen"});
+    }
+    
 }

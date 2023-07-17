@@ -29,7 +29,14 @@ const getProductBySlug = async (req: NextApiRequest, res: NextApiResponse<Data>)
         await db.disconnect();
         if(!productBySlug)
             return res.status(400).json({message: "Producto no encontrado"})
-        return res.status(200).json(productBySlug)
+            
+        //TODO: sacar esta funcion cuando no tengamos imagenes en el file system
+
+        productBySlug.images = productBySlug.images.map ( image => {
+            return image.includes('http') ? image : `${process.env.HOST_NAME}/products/${image}`;
+        })    
+        
+            return res.status(200).json(productBySlug)
 
     }catch(error: any){
         await db.disconnect();

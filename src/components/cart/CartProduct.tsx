@@ -29,7 +29,7 @@ export const CartProduct = (props: Props) =>{
                             <CardActionArea>
                                 <CardMedia
                                     component={'img'}
-                                    image={`/products/${cartProduct.image}`}
+                                    image={cartProduct.image}
                                     alt={cartProduct.title}
                                     sx={{borderRadius: '20px'}}
                                 />

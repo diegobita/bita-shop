@@ -17,7 +17,7 @@ export const AdminLayout = (props: PropsWithChildren<Props>) => {
     return (
         <>
             <Head>
-                <title>Admin - {title}</title>
+                <title>{`Admin - ${title}`}</title>
             </Head>
             <nav>
                 <AdminNavBar/>
